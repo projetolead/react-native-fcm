@@ -1,6 +1,8 @@
 package com.evollu.react.fcm;
 
 import java.util.Map;
+
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -94,7 +96,7 @@ public class MessagingService extends FirebaseMessagingService {
                 Intent intent = new Intent(context, TaskServiceJS.class);
                 intent.putExtra("notification", bundle);
                 context.startService(intent);
-                HeadlessJsTaskService.acquireWakeLockNow(context);
+                TaskServiceJS.acquireWakeLockNow(context);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

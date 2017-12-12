@@ -2,3 +2,4 @@ node_modules
 build
 xcuserdata
 .idea/
+.DS_Store
