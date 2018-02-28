@@ -26,6 +26,26 @@ export const NotificationType = {
   Local: 'local_notification'
 };
 
+export const NotificationCategoryOption = {
+  CustomDismissAction: 'UNNotificationCategoryOptionCustomDismissAction',
+  AllowInCarPlay: 'UNNotificationCategoryOptionAllowInCarPlay',
+  PreviewsShowTitle: 'UNNotificationCategoryOptionHiddenPreviewsShowTitle',
+  PreviewsShowSubtitle: 'UNNotificationCategoryOptionHiddenPreviewsShowSubtitle',
+  None: 'UNNotificationCategoryOptionNone'
+};
+
+export const NotificationActionOption = {
+  AuthenticationRequired: 'UNNotificationActionOptionAuthenticationRequired',
+  Destructive: 'UNNotificationActionOptionDestructive',
+  Foreground: 'UNNotificationActionOptionForeground',
+  None: 'UNNotificationActionOptionNone',
+};
+
+export const NotificationActionType = {
+  Default: 'UNNotificationActionTypeDefault',
+  TextInput: 'UNNotificationActionTypeTextInput',
+};
+
 const RNFIRMessaging = NativeModules.RNFIRMessaging;
 
 const FCM = {};
@@ -47,6 +67,14 @@ FCM.isDirectChannelEstablished = () => {
 FCM.getFCMToken = () => {
   return RNFIRMessaging.getFCMToken();
 };
+
+FCM.getEntityFCMToken = () => {
+  return RNFIRMessaging.getEntityFCMToken();
+}
+
+FCM.deleteEntityFCMToken = () => {
+  return RNFIRMessaging.deleteEntityFCMToken();
+}
 
 FCM.deleteInstanceId = () =>{
   return RNFIRMessaging.deleteInstanceId();
@@ -174,4 +202,12 @@ FCM.send = (senderId, payload) => {
   RNFIRMessaging.send(senderId, payload);
 };
 
+FCM.setNotificationCategories = (categories) => {
+  if (Platform.OS === 'ios') {
+    RNFIRMessaging.setNotificationCategories(categories);
+  }
+}
+
 export default FCM;
+
+export {};

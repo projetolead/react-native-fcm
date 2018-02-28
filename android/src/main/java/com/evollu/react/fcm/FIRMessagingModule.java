@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import com.google.firebase.FirebaseApp;
 
 public class FIRMessagingModule extends ReactContextBaseJavaModule implements LifecycleEventListener, ActivityEventListener {
     private final static String TAG = FIRMessagingModule.class.getCanonicalName();
@@ -80,6 +81,31 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
         try {
             Log.d(TAG, "Firebase token: " + FirebaseInstanceId.getInstance().getToken());
             promise.resolve(FirebaseInstanceId.getInstance().getToken());
+        } catch (Throwable e) {
+            e.printStackTrace();
+            promise.reject(null,e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void getEntityFCMToken(Promise promise) {
+        try {
+            String senderId = FirebaseApp.getInstance().getOptions().getGcmSenderId();
+            String token = FirebaseInstanceId.getInstance().getToken(senderId, "FCM");
+            Log.d(TAG, "Firebase token: " + token);
+            promise.resolve(token);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            promise.reject(null,e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void deleteEntityFCMToken(Promise promise) {
+        try {
+            String senderId = FirebaseApp.getInstance().getOptions().getGcmSenderId();
+            FirebaseInstanceId.getInstance().deleteToken(senderId, "FCM");
+            promise.resolve(null);
         } catch (Throwable e) {
             e.printStackTrace();
             promise.reject(null,e.getMessage());
@@ -307,4 +333,3 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
         sendEvent("FCMNotificationReceived", parseIntent(intent));
     }
 }
-

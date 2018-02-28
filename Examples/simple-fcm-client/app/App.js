@@ -14,6 +14,8 @@ import {
   Platform
 } from 'react-native';
 
+import { StackNavigator } from 'react-navigation';
+
 import FCM from "react-native-fcm";
 
 import {registerKilledListener, registerAppListener} from "./Listeners";
@@ -21,7 +23,7 @@ import firebaseClient from  "./FirebaseClient";
 
 registerKilledListener();
 
-export default class App extends Component {
+class MainPage extends Component {
   constructor(props) {
     super(props);
 
@@ -32,11 +34,16 @@ export default class App extends Component {
   }
 
   async componentDidMount(){
-    registerAppListener();
+    registerAppListener(this.props.navigation);
     FCM.getInitialNotification().then(notif => {
       this.setState({
         initNotif: notif
       })
+      if(notif.targetScreen === 'detail'){
+        setTimeout(()=>{
+          this.props.navigation.navigate('Detail')
+        }, 500)
+      }
     });
 
     try{
@@ -61,12 +68,14 @@ export default class App extends Component {
     FCM.presentLocalNotification({
       vibrate: 500,
       title: 'Hello',
-      body: 'Test Notification',
-      big_text: 'i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large, i am large',
+      body: 'Click me to detail page,',
+      big_text: 'Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text Large Text ',
       priority: "high",
       sound: "bell.mp3",
       large_icon: "https://image.freepik.com/free-icon/small-boy-cartoon_318-38077.jpg",
       show_in_foreground: true,
+      group: 'test',
+      targetScreen: 'detail',
       number: 10
     });
   }
@@ -82,7 +91,10 @@ export default class App extends Component {
       priority: "high",
       large_icon: "https://image.freepik.com/free-icon/small-boy-cartoon_318-38077.jpg",
       show_in_foreground: true,
-      picture: 'https://firebase.google.com/_static/af7ae4b3fc/images/firebase/lockup.png'
+      picture: 'https://firebase.google.com/_static/af7ae4b3fc/images/firebase/lockup.png',
+      wake_screen: true,
+      extra1: {a: 1},
+      extra2: 1
     });
   }
 
@@ -95,10 +107,11 @@ export default class App extends Component {
       	"data":{
 					"custom_notification": {
 						"title": "Simple FCM Client",
-						"body": "This is a notification with only NOTIFICATION.",
+						"body": "Click me to go to detail",
 						"sound": "default",
 						"priority": "high",
-						"show_in_foreground": true
+            "show_in_foreground": true,
+            targetScreen: 'detail'
         	}
     		},
     		"priority": 10
@@ -108,9 +121,12 @@ export default class App extends Component {
 				"to": token,
 				"notification":{
 					"title": "Simple FCM Client",
-					"body": "This is a notification with only NOTIFICATION.",
+					"body": "Click me to go to detail",
 					"sound": "default"
-				},
+        },
+        data: {
+          targetScreen: 'detail'
+        },
 				"priority": 10
 			}
 		}
@@ -132,21 +148,14 @@ export default class App extends Component {
     firebaseClient.send(JSON.stringify(body), "data");
   }
 
-  sendRemoteNotificationWithData(token) {
-    let body = {
-      "to": token,
-      "notification":{
-    		"title": "Simple FCM Client",
-    		"body": "This is a notification with NOTIFICATION and DATA (NOTIF).",
-				"sound": "default"
-    	},
-    	"data":{
-    		"hello": "there"
-    	},
-    	"priority": "high"
-    }
-
-    firebaseClient.send(JSON.stringify(body), "notification-data");
+  showLocalNotificationWithAction() {
+    FCM.presentLocalNotification({
+      title: 'Test Notification with action',
+      body: 'Force touch to reply',
+      priority: "high",
+      show_in_foreground: true,
+      click_action: "com.myidentifi.fcm.text"
+    });
   }
 
   render() {
@@ -156,15 +165,6 @@ export default class App extends Component {
       <View style={styles.container}>
         <Text style={styles.welcome}>
           Welcome to Simple Fcm Client!
-        </Text>
-
-        <Text>
-          Init notif: {JSON.stringify(this.state.initNotif)}
-
-        </Text>
-
-        <Text selectable={true} onPress={() => this.setClipboardContent(this.state.token)} style={styles.instructions}>
-          Token: {this.state.token}
         </Text>
 
         <Text style={styles.feedback}>
@@ -183,17 +183,26 @@ export default class App extends Component {
           <Text style={styles.buttonText}>Send Remote Data</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => this.sendRemoteNotificationWithData(token)} style={styles.button}>
-          <Text style={styles.buttonText}>Send Remote Notification With Data</Text>
+        <TouchableOpacity onPress={() => this.showLocalNotification()} style={styles.button}>
+          <Text style={styles.buttonText}>Show Local Notification</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => this.showLocalNotification()} style={styles.button}>
-          <Text style={styles.buttonText}>Send Local Notification</Text>
+        <TouchableOpacity onPress={() => this.showLocalNotificationWithAction(token)} style={styles.button}>
+          <Text style={styles.buttonText}>Show Local Notification with Action (iOS)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => this.scheduleLocalNotification()} style={styles.button}>
           <Text style={styles.buttonText}>Schedule Notification in 5s</Text>
         </TouchableOpacity>
+
+        <Text>
+          Init notif: {JSON.stringify(this.state.initNotif)}
+        </Text>
+
+        <Text selectable={true} onPress={() => this.setClipboardContent(this.state.token)} style={styles.instructions}>
+          Token: {this.state.token}
+        </Text>
+
       </View>
     );
   }
@@ -208,6 +217,25 @@ export default class App extends Component {
     this.setState({tokenCopyFeedback: ""});
   }
 }
+
+class DetailPage extends Component {
+  render(){
+    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text>Detail page</Text>
+    </View>
+  }
+}
+
+export default StackNavigator({
+  Main: {
+    screen: MainPage,
+  },
+  Detail: {
+    screen: DetailPage
+  }
+}, {
+  initialRouteName: 'Main',
+});
 
 const styles = StyleSheet.create({
   container: {
